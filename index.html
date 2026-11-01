@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yaaro Ka Yaar Stream - IPTV Hub</title>
+    <meta name="description" content="Yaaro Ka Yaar Stream - IPTV Hub, Live Channels & M3U Playlist Downloader." />
+    <meta property="og:title" content="Yaaro Ka Yaar Stream - IPTV Hub" />
+    <meta property="og:description" content="Yaaro Ka Yaar Stream - IPTV Hub, Live Channels & M3U Playlist Downloader." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Google AdSense -->
+    <!-- Suppress dev WebSocket / HMR connection noise in console -->
+    <script>
+      (function() {
+        if (typeof window !== 'undefined') {
+          const filterLog = function(args) {
+            try {
+              const str = args.map(function(a) {
+                return typeof a === 'string' ? a : (a && (a.message || a.toString())) || '';
+              }).join(' ');
+              return /websocket|ws:\/\/|wss:\/\/|\[vite\]/i.test(str);
+            } catch (e) {
+              return false;
+            }
+          };
+          const _err = console.error;
+          console.error = function() {
+            var args = Array.prototype.slice.call(arguments);
+            if (!filterLog(args)) _err.apply(console, args);
+          };
+          const _warn = console.warn;
+          console.warn = function() {
+            var args = Array.prototype.slice.call(arguments);
+            if (!filterLog(args)) _warn.apply(console, args);
+          };
+          window.addEventListener('error', function(event) {
+            if (event && event.message && /websocket|ws:\/\/|wss:\/\/|\[vite\]/i.test(event.message)) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }, true);
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-BP2yUqBs.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CzDE-fAm.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+

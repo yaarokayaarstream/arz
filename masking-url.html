@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yaaro Ka Yaar URL</title>
+  <meta name="description" content="Seamless Full-Screen URL Masking Page with borderless iframe">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --panel-bg: rgba(30, 41, 59, 0.90);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --input-bg: #0b1120;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Prevent all scrollbars when masked iframe is active */
+    body.is-masked {
+      overflow: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    body.is-masked::-webkit-scrollbar {
+      display: none !important;
+    }
+
+    /* Setup Container / Landing UI */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+      position: relative;
+      z-index: 10;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .container.hidden {
+      display: none !important;
+    }
+
+    /* Card Box */
+    .card {
+      width: 100%;
+      max-width: 660px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 36px 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header inside card */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 svg {
+      color: var(--accent);
+    }
+
+    p.subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    /* Form Layout */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-wrapper svg.icon-link {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      pointer-events: none;
+    }
+
+    input[type="url"], input[type="text"] {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 14px 40px 14px 44px;
+      font-size: 14px;
+      color: #ffffff;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    input[type="url"]:focus, input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      background: #060913;
+    }
+
+    .btn-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .btn-clear:hover {
+      color: #ffffff;
+    }
+
+    /* Buttons Row */
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 540px) {
+      .button-row {
+        flex-direction: column;
+      }
+    }
+
+    .btn-primary {
+      flex: 2;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      padding: 13px 20px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Error Banner */
+    .error-box {
+      margin-top: 8px;
+      background: rgba(225, 29, 72, 0.15);
+      border: 1px solid rgba(225, 29, 72, 0.35);
+      color: #fecdd3;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Result Card (Generated Masking URL display) */
+    .result-card {
+      display: none;
+      margin-top: 18px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1.5px solid #10b981;
+      border-radius: 18px;
+      padding: 18px;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .result-header span.title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .result-header span.badge-status {
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(16, 185, 129, 0.2);
+      color: #a7f3d0;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .result-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 500px) {
+      .result-input-row {
+        flex-direction: column;
+      }
+    }
+
+    .result-input {
+      flex: 1;
+      background: #060913 !important;
+      border: 1px solid rgba(16, 185, 129, 0.4) !important;
+      border-radius: 12px !important;
+      padding: 11px 14px !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      color: #6ee7b7 !important;
+      user-select: all;
+    }
+
+    .btn-copy {
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-copy:hover {
+      background: #059669;
+    }
+
+    .btn-preview-link {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-preview-link:hover {
+      background: #1e293b;
+    }
+
+    .result-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(16, 185, 129, 0.15);
+    }
+
+    .result-footer span.orig {
+      font-family: monospace;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Features List */
+    .features-list {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .features-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    .feature-item svg {
+      color: #10b981;
+      flex-shrink: 0;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .footer a {
+      color: #34d399;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* ========================================================================= */
+    /* FULL-SCREEN BORDERLESS & SCROLLBAR-FREE MASKING IFRAME                    */
+    /* (Completely clean: No borders, No scrollbars, No floating overlay bars)   */
+    /* ========================================================================= */
+    /* ========================================================================= */
+    /* FULL-SCREEN BORDERLESS MASKING IFRAME & PLAYER                            */
+    /* (Clean: No black screen, white/neutral base, auto scrolling allowed)      */
+    /* ========================================================================= */
+    #maskedFrame {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      width: 100%;
+      height: 100%;
+      border: none !important;
+      outline: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: auto !important;
+      display: none;
+      z-index: 9990;
+      background: #ffffff;
+    }
+
+    /* Video player for IPTV streams / direct video links */
+    #maskedVideoPlayer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: none;
+      z-index: 9992;
+      background: #000000;
+      object-fit: contain;
+    }
+
+    /* Universal suppression of cookie banners and consent overlays */
+    #onetrust-consent-sdk, #onetrust-banner-sdk, .onetrust-pc-dark,
+    #cookie-notice, #cookie-law-info-bar, .cc-window, .cc-banner, .cc-floating,
+    .cookie-banner, .cookie-consent, .cookie-popup, #cookieConsent, #cookie-bar,
+    .qc-cmp2-container, .cmp-container, #CybotCookiebotDialog, #CybotCookiebotDialogBodyUnderlay,
+    .fc-consent-root, .fc-dialog-container, .fc-dialog-overlay,
+    .cmpbox, #cmpbox, #didomi-host, #usercentrics-root,
+    .notice-box, #noticeBox, .notice-dialog {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    /* Direct link full-screen mode: zero landing UI, immediate direct content */
+    html.direct-view-active #setupContainer {
+      display: none !important;
+    }
+    html.direct-view-active, html.direct-view-active body {
+      overflow: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #ffffff !important;
+    }
+
+    @keyframes maskSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- HLS.js for IPTV / Video Stream playback -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
+
+  <script>
+    // Immediate pre-execution: If query URL, masked config, or slug path is present, immediately activate direct-view-active
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search);
+        var u = p.get('url') || p.get('u');
+        var path = window.location.pathname || '';
+        var isSlug = /^\/(?:tinysrc\/go|tinysrc|m|mask)\/[a-zA-Z0-9_\-]+/i.test(path);
+        if (u || isSlug || (window.__MASKED_CONFIG__ && window.__MASKED_CONFIG__.targetUrl)) {
+          document.documentElement.classList.add('direct-view-active');
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Landing / Setup Input Screen -->
+  <div class="container" id="setupContainer">
+    <div class="card">
+      <div class="badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Yaaro ka Yaar Masking Engine
+      </div>
+
+      <h1>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        Yaaro ka Yaar Masker
+      </h1>
+
+      <p class="subtitle">
+        Enter your short URL or destination link to generate a masked <strong>Yaaro ka Yaar</strong> URL.
+      </p>
+
+      <form id="maskingForm" onsubmit="handleGenerate(event)" class="form-group">
+        <label for="urlInput">
+          <span>Enter Short / Destination URL:</span>
+        </label>
+        
+        <div class="input-wrapper">
+          <svg class="icon-link" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <input 
+            id="urlInput" 
+            type="text" 
+            placeholder="e.g. https://stream.example.com or any destination link" 
+            autocomplete="off" 
+            spellcheck="false"
+            required 
+          />
+          <button type="button" id="btnClear" class="btn-clear" onclick="clearInput()" title="Clear URL">✕</button>
+        </div>
+
+        <!-- Mode Toggle: Direct Iframe vs Server-Side Cloaking Proxy -->
+        <div style="display: flex; align-items: center; gap: 8px; margin: 6px 0 14px 2px; font-size: 12px; color: #cbd5e1;">
+          <input type="checkbox" id="chkProxy" style="accent-color: #10b981; width: 15px; height: 15px; cursor: pointer;" />
+          <label for="chkProxy" style="cursor: pointer; user-select: none;">
+            Use Server-Side Cloaking Proxy <span style="color: #94a3b8; font-size: 11px;">(Bypasses X-Frame-Options & strict CORS)</span>
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button type="submit" id="btnGenerate" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+            <span>Generate Masking URL</span>
+          </button>
+
+          <button type="button" id="btnDirectLoad" class="btn-secondary" onclick="handleDirectFullscreen()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Launch Fullscreen</span>
+          </button>
+        </div>
+
+        <div id="errorBox" class="error-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span id="errorMsg">Please enter a valid URL.</span>
+        </div>
+
+        <!-- GENERATED MASKING URL RESULT CARD -->
+        <div id="resultCard" class="result-card">
+          <div class="result-header">
+            <span class="title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Generated Yaaro ka Yaar URL
+            </span>
+            <span class="badge-status">Yaaro ka Yaar</span>
+          </div>
+
+          <div class="result-input-row">
+            <input type="text" id="maskedOutputUrl" class="result-input" readonly />
+            <button type="button" id="btnCopy" class="btn-copy" onclick="copyMaskedUrl()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="copyBtnText">Copy</span>
+            </button>
+            <button type="button" class="btn-preview-link" onclick="previewMaskedUrl()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <polyline points="9 21 3 21 3 15"></polyline>
+                <line x1="21" y1="3" x2="14" y2="10"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+              </svg>
+              <span>Preview</span>
+            </button>
+          </div>
+
+          <div class="result-footer">
+            <span>Target: <span id="targetDisplay" class="orig"></span></span>
+            <span style="color: #34d399; font-weight: 700;">Borderless & Scrollbar-Free</span>
+          </div>
+        </div>
+      </form>
+
+      <div class="features-list">
+        <div class="feature-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Borderless 100% full-screen</span>
+        </div>
+        <div class="feature-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>No scrollbars or frames</span>
+        </div>
+        <div class="feature-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Address bar URL masked</span>
+        </div>
+        <div class="feature-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>1-Click Copy & Instant Share</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Powered by <strong>Yaaro ka Yaar</strong> • <a href="/" title="Return to Applet Dashboard">Back to Applet</a>
+    </div>
+  </div>
+
+  <!-- Loading overlay so user never sees a black screen while content prepares -->
+  <div id="maskLoader" style="display:none; position:fixed; inset:0; z-index:9998; background:#ffffff; flex-direction:column; align-items:center; justify-content:center; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <div style="width:44px; height:44px; border:3.5px solid #e2e8f0; border-top-color:#10b981; border-radius:50%; animation:maskSpin 0.75s linear infinite; margin-bottom:14px;"></div>
+    <div style="font-size:15px; font-weight:800; color:#0f172a; letter-spacing:-0.01em;">Loading Destination Content...</div>
+    <div id="loaderStatus" style="font-size:12px; font-weight:500; color:#64748b; margin-top:4px;">Protected via aisdev domain</div>
+  </div>
+
+  <!-- Full-screen video player for .m3u8, .mp4, and live stream links -->
+  <video id="maskedVideoPlayer" playsinline controls autoplay></video>
+
+  <!-- Seamless Borderless Full-Screen Iframe -->
+  <iframe 
+    id="maskedFrame" 
+    frameborder="0" 
+    scrolling="yes" 
+    allowfullscreen="true" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+    sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-downloads allow-modals allow-presentation"
+  ></iframe>
+
+  <script>
+    const setupContainer = document.getElementById('setupContainer');
+    const maskedFrame = document.getElementById('maskedFrame');
+    const maskedVideoPlayer = document.getElementById('maskedVideoPlayer');
+    const maskLoader = document.getElementById('maskLoader');
+    const urlInput = document.getElementById('urlInput');
+    const btnClear = document.getElementById('btnClear');
+    const errorBox = document.getElementById('errorBox');
+    const errorMsg = document.getElementById('errorMsg');
+    const resultCard = document.getElementById('resultCard');
+    const maskedOutputUrl = document.getElementById('maskedOutputUrl');
+    const copyBtnText = document.getElementById('copyBtnText');
+    const targetDisplay = document.getElementById('targetDisplay');
+    const chkProxy = document.getElementById('chkProxy');
+
+    let currentTargetUrl = '';
+
+    urlInput.addEventListener('input', () => {
+      btnClear.style.display = urlInput.value ? 'block' : 'none';
+      errorBox.style.display = 'none';
+    });
+
+    function clearInput() {
+      urlInput.value = '';
+      btnClear.style.display = 'none';
+      resultCard.style.display = 'none';
+      urlInput.focus();
+    }
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorBox.style.display = 'flex';
+      resultCard.style.display = 'none';
+    }
+
+    function sanitizeUrl(raw) {
+      let t = raw.trim();
+      if (!/^https?:\/\//i.test(t)) {
+        t = 'https://' + t;
+      }
+      return t;
+    }
+
+    // 1. Generate Yaaro Ka Yaar Masking URL and present it to the user with 1-click copy
+    async function handleGenerate(e) {
+      if (e) e.preventDefault();
+      const raw = urlInput.value.trim();
+
+      if (!raw) {
+        showError('Please enter a valid short URL or destination URL.');
+        return;
+      }
+
+      const targetUrl = sanitizeUrl(raw);
+      try {
+        new URL(targetUrl);
+      } catch (err) {
+        showError('The entered URL is not in a recognized format.');
+        return;
+      }
+
+      currentTargetUrl = targetUrl;
+      errorBox.style.display = 'none';
+      const useProxy = chkProxy && chkProxy.checked;
+
+      try {
+        const res = await fetch('/api/urlshield/mask-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: targetUrl, useProxy })
+        });
+        const data = await res.json();
+        let generatedLink = (data && data.success && data.maskedUrl) 
+          ? data.maskedUrl 
+          : '';
+
+        if (!generatedLink) {
+          const origin = (window.location.origin && !window.location.origin.includes('localhost'))
+            ? window.location.origin
+            : 'https://ais-dev-m5xxmnbj3ov6ar4hzgxzgc-136240641802.asia-east1.run.app';
+          const hash = Math.random().toString(36).substring(2, 10);
+          generatedLink = `${origin}/tinysrc/go/ts_${hash}`;
+        }
+
+        maskedOutputUrl.value = generatedLink;
+        targetDisplay.textContent = targetUrl;
+        resultCard.style.display = 'block';
+
+        // Save to localStorage history
+        try {
+          localStorage.setItem('yaaro_last_masked_url', targetUrl);
+        } catch {}
+      } catch (err) {
+        const origin = (window.location.origin && !window.location.origin.includes('localhost'))
+          ? window.location.origin
+          : 'https://ais-dev-m5xxmnbj3ov6ar4hzgxzgc-136240641802.asia-east1.run.app';
+        const hash = Math.random().toString(36).substring(2, 10);
+        const generatedLink = `${origin}/tinysrc/go/ts_${hash}`;
+        maskedOutputUrl.value = generatedLink;
+        targetDisplay.textContent = targetUrl;
+        resultCard.style.display = 'block';
+      }
+    }
+
+    // 2. 1-Click Copy Masked Link
+    function copyMaskedUrl() {
+      const link = maskedOutputUrl.value;
+      if (!link) return;
+      navigator.clipboard.writeText(link).then(() => {
+        copyBtnText.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtnText.textContent = 'Copy';
+        }, 2000);
+      });
+    }
+
+    // 3. Preview masked URL in a new tab (opens non-redirecting cloaked link)
+    function previewMaskedUrl() {
+      const link = maskedOutputUrl.value;
+      if (link) {
+        window.open(link, '_blank');
+      } else if (currentTargetUrl) {
+        const origin = (window.location.origin && !window.location.origin.includes('localhost'))
+          ? window.location.origin
+          : 'https://ais-dev-m5xxmnbj3ov6ar4hzgxzgc-136240641802.asia-east1.run.app';
+        window.open(`${origin}/tinysrc/go/ts_${Math.random().toString(36).substring(2, 10)}`, '_blank');
+      }
+    }
+
+    // 4. Launch directly into full-screen cloaked iframe (updates browser URL without page reload)
+    function handleDirectFullscreen() {
+      const raw = urlInput.value.trim();
+      if (!raw && !currentTargetUrl) {
+        showError('Please enter a URL first.');
+        return;
+      }
+      const targetUrl = currentTargetUrl || sanitizeUrl(raw);
+      const useProxy = chkProxy && chkProxy.checked;
+      const proxyParam = useProxy ? '&proxy=1' : '';
+      
+      const newQuery = `?url=${encodeURIComponent(targetUrl)}${proxyParam}`;
+      try {
+        window.history.pushState({}, '', newQuery);
+      } catch {}
+
+      loadInMaskedIframe(targetUrl, useProxy);
+    }
+
+    function hideLoader() {
+      if (maskLoader) {
+        maskLoader.style.opacity = '0';
+        maskLoader.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => {
+          maskLoader.style.display = 'none';
+        }, 200);
+      }
+    }
+
+    function showLoader(msg) {
+      if (maskLoader) {
+        maskLoader.style.display = 'flex';
+        maskLoader.style.opacity = '1';
+        const st = document.getElementById('loaderStatus');
+        if (st && msg) st.textContent = msg;
+      }
+    }
+
+    // 5. Load destination content via full-screen iframe or video stream player
+    // Browser address bar remains on /masking-url?url=... completely hiding original destination
+    function loadInMaskedIframe(targetUrl, explicitProxy = null) {
+      currentTargetUrl = targetUrl;
+      document.documentElement.classList.add('direct-view-active');
+      setupContainer.style.display = 'none';
+      setupContainer.classList.add('hidden');
+      document.body.classList.add('is-masked');
+
+      // Keep address bar firmly locked to current masking URL
+      try {
+        const lockedUrl = window.location.href;
+        window.addEventListener('popstate', () => {
+          if (!window.location.href.includes('/tinysrc') && !window.location.href.includes('/masking-url')) {
+            window.history.pushState(null, '', lockedUrl);
+          }
+        });
+      } catch (e) {}
+
+      // Check if target is a direct video/audio stream file
+      const isStream = /\.(m3u8|mp4|webm|ts|mkv|mp3|aac)(\?.*)?$/i.test(targetUrl);
+
+      if (isStream) {
+        // Direct Stream: Play full-screen inside HTML5/HLS Video Player (Never a black screen)
+        maskedFrame.style.display = 'none';
+        maskedVideoPlayer.style.display = 'block';
+        showLoader('Loading stream player...');
+
+        if (targetUrl.includes('.m3u8') && window.Hls && Hls.isSupported()) {
+          const hls = new Hls({ enableWorker: true });
+          hls.loadSource(targetUrl);
+          hls.attachMedia(maskedVideoPlayer);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            maskedVideoPlayer.play().catch(() => {});
+            hideLoader();
+          });
+          hls.on(Hls.Events.ERROR, () => {
+            hideLoader();
+          });
+        } else {
+          maskedVideoPlayer.src = targetUrl;
+          maskedVideoPlayer.onloadedmetadata = () => {
+            maskedVideoPlayer.play().catch(() => {});
+            hideLoader();
+          };
+          maskedVideoPlayer.onerror = () => {
+            hideLoader();
+          };
+        }
+        document.title = 'Yaaro Ka Yaar Stream';
+        return;
+      }
+
+      // Target is a destination website or web link
+      maskedVideoPlayer.style.display = 'none';
+      maskedFrame.style.display = 'block';
+      showLoader('Loading destination content...');
+
+      // Dual-mode loading: If explicit proxy is requested use proxy, otherwise try direct with auto proxy fallback
+      let useProxy = explicitProxy === true;
+      let finalSrc = useProxy
+        ? `/api/urlshield/proxy?url=${encodeURIComponent(targetUrl)}`
+        : targetUrl;
+
+      let hasLoadedSuccessfully = false;
+
+      maskedFrame.onload = () => {
+        hasLoadedSuccessfully = true;
+        hideLoader();
+      };
+
+      maskedFrame.onerror = () => {
+        if (!useProxy) {
+          useProxy = true;
+          showLoader('Switching to safe cloaking mode...');
+          maskedFrame.src = `/api/urlshield/proxy?url=${encodeURIComponent(targetUrl)}`;
+        } else {
+          hideLoader();
+        }
+      };
+
+      // In case iframe silent-blocks (e.g. X-Frame-Options headers on direct load), automatically switch to cloaking proxy
+      setTimeout(() => {
+        if (!hasLoadedSuccessfully && !useProxy) {
+          useProxy = true;
+          maskedFrame.src = `/api/urlshield/proxy?url=${encodeURIComponent(targetUrl)}`;
+        }
+        // Always dismiss loader within 4.5s
+        setTimeout(hideLoader, 1500);
+      }, 4000);
+
+      maskedFrame.src = finalSrc;
+
+      // Page title: clean title
+      document.title = 'Yaaro Ka Yaar URL';
+
+      // Clean up any dynamic cookie or notice dialogs if any leak
+      setInterval(() => {
+        try {
+          const badEls = document.querySelectorAll('#onetrust-consent-sdk, #onetrust-banner-sdk, #cookie-notice, .cookie-banner, .cookie-consent, .notice-box, #noticeBox');
+          badEls.forEach(el => el.remove());
+        } catch (e) {}
+      }, 1000);
+    }
+
+    // Auto-launch if masked config is injected, slug path is accessed, or 'url' query parameter is present
+    window.addEventListener('DOMContentLoaded', () => {
+      // Remove any lingering notice or cookie boxes immediately
+      try {
+        document.querySelectorAll('.notice-dialog, #noticeBox, .cookie-banner').forEach(el => el.remove());
+      } catch (e) {}
+
+      // 1. Direct server-injected masked config (Instant loading, 100% address bar masked)
+      if (window.__MASKED_CONFIG__ && window.__MASKED_CONFIG__.targetUrl) {
+        const rawTarget = window.__MASKED_CONFIG__.targetUrl;
+        const useProxy = Boolean(window.__MASKED_CONFIG__.useProxy);
+        loadInMaskedIframe(rawTarget, useProxy);
+        return;
+      }
+
+      // 2. Client-side path resolution for /tinysrc/go/:slug, /tinysrc/:slug, /mask/:slug
+      const path = window.location.pathname || '';
+      const slugMatch = path.match(/^\/(?:tinysrc\/go|tinysrc|m|mask)\/([a-zA-Z0-9_\-]+)/i);
+      if (slugMatch && slugMatch[1]) {
+        const slug = slugMatch[1];
+        showLoader('Resolving masked link...');
+        fetch(`/api/urlshield/resolve/${slug}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success && data.originalUrl) {
+              loadInMaskedIframe(data.originalUrl, data.useProxy);
+            } else {
+              hideLoader();
+              showError('Masked link has expired or could not be found.');
+            }
+          })
+          .catch(() => {
+            hideLoader();
+            showError('Unable to resolve masked link.');
+          });
+        return;
+      }
+
+      // 3. Fallback query parameters ?url= or ?u=
+      const params = new URLSearchParams(window.location.search);
+      const queryUrl = params.get('url') || params.get('u');
+      if (queryUrl) {
+        const clean = sanitizeUrl(queryUrl);
+        const proxyParam = params.get('proxy');
+        const explicitProxy = proxyParam === '1' || proxyParam === 'true' 
+          ? true 
+          : (proxyParam === '0' || proxyParam === 'false' || params.get('direct') === '1' ? false : null);
+
+        // Immediately load inside full-screen borderless frame (keeps address bar masked!)
+        loadInMaskedIframe(clean, explicitProxy);
+        return;
+      } else {
+        try {
+          const last = localStorage.getItem('yaaro_last_masked_url');
+          if (last) {
+            urlInput.value = last;
+            btnClear.style.display = 'block';
+          }
+        } catch {}
+      }
+    });
+  </script>
+</body>
+</html>
