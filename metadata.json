@@ -1,6 +1,0 @@
-{
-  "name": "StreamHub - IPTV Stream Player & Downloader",
-  "description": "Xtream Codes Stream API Player & M3U Downloader with Live Channel List and Full-Screen Playback.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
